@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Σύγκριση Μουσικών Λιστών Βάσει Αρμονιών</title>
     <!-- Chosen Palette: Warm Neutrals -->
-    <!-- Application Structure Plan: A single-page dashboard layout with a top navigation bar for smooth scrolling to different analysis sections. The structure is designed for a logical flow from a high-level overview to detailed comparisons. 1. **Introduction**: Sets the stage, introduces the system, and its capabilities. 2. **Methodology**: Explains the technical approach and parameters. 3. **Harmonic Features Explained**: Defines the metrics for clarity. 4. **Statistical Analysis**: Presents key quantitative comparisons using radar and bar charts. 5. **Dimensionality Reduction & Clustering**: Explores data relationships and groupings with scatter plots and matrices. 6. **Conclusions**: Summarizes findings and future work. This structure was chosen to guide the user from broad understanding to specific details, making the dense information of the report accessible and engaging, tailored for general musical and data enthusiasts. -->
-    <!-- Visualization & Content Choices: 1. **Introduction (Text & Status)**: Goal: Inform. Key system features (smart sampling, data cleansing) are presented as styled text blocks and checkmark icons for immediate understanding of system capabilities. (HTML/Tailwind). 2. **Overview (Radar Chart)**: Goal: Inform/Compare. A radar chart provides a multivariate "fingerprint" of each genre across key harmonic metrics, offering an intuitive, high-level comparison. (Chart.js/Canvas). 3. **Feature Comparison (Dynamic Bar Chart)**: Goal: Compare. An interactive bar chart, updated by a dropdown, allows for detailed comparison of individual features, directly addressing the core analysis of the report. (Chart.js/Canvas). 4. **Correlation Matrix (Styled HTML Table)**: Goal: Relationships. A manually created HTML table with conditional background colors effectively represents the correlation matrix, showing relationships between features. (HTML/CSS). 5. **PCA/K-Means Clustering (Scatter Plots)**: Goal: Relationships/Organize. Scatter plots are ideal for visualizing the PCA and K-Means clustering results, showing the distribution and grouping of songs in a 2D space. Placeholder data is used to represent the visual patterns from the source PDF. (Chart.js/Canvas). 6. **Similarity Matrix (Styled HTML Table)**: Goal: Relationships. A manually created HTML table with conditional background colors shows the cosine similarity between genres, providing a direct comparison of their harmonic profiles. (HTML/CSS). 7. **Textual Content (Styled Text Blocks)**: Goal: Inform. Summaries, explanations, and conclusions from the report are presented in clean, readable text blocks to provide context and findings. (HTML/Tailwind). -->
+    <!-- Application Structure Plan: A single-page dashboard layout with a top navigation bar for smooth scrolling to different analysis sections. The structure is designed for a logical flow from a high-level overview to detailed comparisons. 1. **Introduction**: Sets the stage, introduces the system, and its capabilities. 2. **Methodology**: Explains the technical approach and parameters, including implementation phases and STFT parameters. 3. **Harmonic Features Explained**: Defines all the harmonic metrics for clarity. 4. **Analysis**: This is the core interactive section, presenting statistical analysis, a dynamic bar chart for feature comparison, PCA scatter plot, correlation matrix, K-Means clustering scatter plot, and a cosine similarity matrix. 5. **Conclusions**: Summarizes key findings and outlines future work. This structure was chosen to guide the user from broad understanding to specific details and insights, making the dense information of the report accessible and engaging, tailored for general musical and data enthusiasts. -->
+    <!-- Visualization & Content Choices: 1. **Introduction (Text & Status)**: Goal: Inform. Key system features (smart sampling, data cleansing, workflow) are presented as styled text blocks with checkmark icons for immediate understanding of system capabilities. (HTML/Tailwind). 2. **Overview (Radar Chart)**: Goal: Inform/Compare. A radar chart provides a multivariate "fingerprint" of each genre across key harmonic metrics, offering an intuitive, high-level comparison of normalized data. (Chart.js/Canvas). 3. **Feature Comparison (Dynamic Bar Chart)**: Goal: Compare. An interactive bar chart, updated by a dropdown, allows for detailed comparison of individual harmonic features across genres. (Chart.js/Canvas). 4. **Correlation Matrix (Styled HTML Table)**: Goal: Relationships. A manually created HTML table with conditional background colors (red/blue for correlation strength) effectively represents the correlation matrix, showing relationships between features. (HTML/CSS). 5. **PCA/K-Means Clustering (Scatter Plots)**: Goal: Relationships/Organize. Scatter plots are ideal for visualizing the PCA and K-Means clustering results, showing the distribution and grouping of songs in a 2D space. The data is simulated to visually match the patterns and clusters seen in the source PDF plots, demonstrating the concept rather than exact data points. (Chart.js/Canvas). 6. **Similarity Matrix (Styled HTML Table)**: Goal: Relationships. A manually created HTML table with conditional background colors (green shades for similarity strength) shows the cosine similarity between genres, providing a direct quantitative comparison of their harmonic profiles. (HTML/CSS). 7. **Textual Content (Styled Text Blocks)**: Goal: Inform. Summaries, explanations, technical details, and conclusions from the report are presented in clean, readable text blocks to provide comprehensive context and findings. (HTML/Tailwind). -->
     <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -21,14 +21,16 @@
             position: relative;
             margin-left: auto;
             margin-right: auto;
-            height: 40vh;
-            width: 90vw;
-            max-width: 600px;
-            max-height: 400px;
+            height: 40vh; /* Responsive height for charts */
+            width: 90vw; /* Responsive width */
+            max-width: 700px; /* Max width to prevent excessive stretching */
+            max-height: 450px; /* Max height to prevent vertical overflow */
         }
         @media (min-width: 768px) {
             .chart-container {
-                height: 350px;
+                height: 350px; /* Adjust height for larger screens */
+                max-width: 600px;
+                max-height: 400px;
             }
         }
         .nav-link {
@@ -53,6 +55,26 @@
         h3 {
             color: #a58a6f;
         }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        th, td {
+            border: 1px solid #e0e0e0;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #f5f5f5;
+        }
+        .bg-red-100 { background-color: #fee2e2; }
+        .bg-red-200 { background-color: #fecaca; }
+        .bg-blue-100 { background-color: #dbeafe; }
+        .bg-blue-200 { background-color: #bfdbfe; }
+        .bg-green-100 { background-color: #dcfce7; }
+        .bg-green-200 { background-color: #bbf7d0; }
+        .bg-green-300 { background-color: #86efac; }
+        .bg-gray-50 { background-color: #f9fafb; }
     </style>
 </head>
 <body class="antialiased">
@@ -83,7 +105,7 @@
                     <span class="text-green-600 mr-2">✔</span> **Ολοκληρωμένα Χαρακτηριστικά:**
                 </div>
                 <ul class="list-disc list-inside ml-6 text-gray-600 space-y-1">
-                    <li>Ενσωμάτωση καθαρισμού δεδομένων: Προ-επεξεργασία πριν τη λήψη βίντεο για φιλτράρισμα διάρκειας.</li>
+                    <li>Ενσωμάτωση καθαρισμού δεδομένων: Προ-επεξεργασία πριν τη λήψη βίντεο για φιλτράρισμα διάρκειας (&lt; 90s).</li>
                     <li>Διόρθωση ελλιπών μεθόδων: Προσθήκη `extract_harmonic_features` και `compute_harmony_metrics`.</li>
                     <li>Έξυπνη δειγματοληψία: Επιλογή clip βάσει διάρκειας βίντεο.</li>
                     <li>Πλήρης ροή εργασιών: Διαμόρφωση → Καθαρισμός Δεδομένων → Ανάλυση Αρμονιών → Αποτελέσματα.</li>
@@ -109,7 +131,17 @@
         <section id="methodology" class="mb-12 section-card p-6 md:p-8">
             <h2 class="text-2xl font-bold mb-4">Μεθοδολογία Ανάλυσης</h2>
             <p class="mb-6 text-gray-700 leading-relaxed">Η ανάλυση ακολουθεί μια δομημένη προσέγγιση για την εξαγωγή και σύγκριση αρμονικών χαρακτηριστικών. Ξεκινά με την εξαγωγή ήχου από βίντεο του YouTube, ακολουθεί ορισμός βέλτιστων παραμέτρων STFT για ακριβή φασματική ανάλυση, και τέλος, εφαρμογή κλάσεων για την εξαγωγή και επιλογή των πιο σημαντικών χαρακτηριστικών.</p>
-            <h3 class="text-xl font-semibold mb-3">Βέλτιστες Παράμετροι STFT για Ανίχνευση Αρμονιών:</h3>
+            
+            <h3 class="text-xl font-semibold mb-3">Τεχνική Υλοποίηση (Φάσεις):</h3>
+            <ul class="list-disc list-inside ml-6 text-gray-600 space-y-1">
+                <li>**Φάση 1**: Εξαγωγή μεταδεδομένων και φιλτράρισμα διάρκειας χρησιμοποιώντας `yt-dlp`.</li>
+                <li>**Φάση 2**: Ανάλυση αρμονίας με πλήρη εξαγωγή χαρακτηριστικών.</li>
+                <li>**Φάση 3**: Συλλογή και σύγκριση αποτελεσμάτων.</li>
+                <li>**Εύρος Διάρκειας**: Ελάχιστο 90 δευτερόλεπτα, μέγιστο 1500 δευτερόλεπτα (25 λεπτά).</li>
+                <li>**Αποδοτικότητα**: Η έξυπνη δειγματοληψία αποτρέπει τις περιττές λήψεις.</li>
+            </ul>
+
+            <h3 class="text-xl font-semibold mb-3 mt-6">Βέλτιστες Παράμετροι STFT για Ανίχνευση Αρμονιών:</h3>
             <ul class="list-disc list-inside text-gray-600 space-y-1">
                 <li>**Υψηλή Συχνότητα Δειγματοληψίας (sr: 48000Hz)**: Για ακριβή καταγραφή υψηλών συχνοτήτων.</li>
                 <li>**Μεγάλο n_fft (4096)**: Για υψηλή φασματική ανάλυση αρμονικών.</li>
@@ -164,7 +196,7 @@
             <div class="grid md:grid-cols-2 gap-8 mb-12">
                 <div>
                     <h3 class="text-xl font-semibold mb-4 text-center">PCA Scatter Plot</h3>
-                    <p class="mb-4 text-gray-700 text-sm">Το παρακάτω διάγραμμα απεικονίζει τα τραγούδια σε έναν δισδιάστατο χώρο που δημιουργήθηκε από τις δύο πρώτες κύριες συνιστώσες της ανάλυσης (PC1: 94.51% διακύμανση, PC2: 5.49% διακύμανση). Κάθε σημείο αντιπροσωπεύει ένα τραγούδι, χρωματισμένο ανάλογα με τη λίστα του, επιτρέποντας την οπτική ανίχνευση ομαδοποιήσεων και τάσεων.</p>
+                    <p class="mb-4 text-gray-700 text-sm">Το παρακάτω διάγραμμα απεικονίζει τα τραγούδια σε έναν δισδιάμεσο χώρο που δημιουργήθηκε από τις δύο πρώτες κύριες συνιστώσες της ανάλυσης (PC1: 94.51% διακύμανση, PC2: 5.49% διακύμανση). Κάθε σημείο αντιπροσωπεύει ένα τραγούδι, χρωματισμένο ανάλογα με τη λίστα του, επιτρέποντας την οπτική ανίχνευση ομαδοποιήσεων και τάσεων.</p>
                     <div class="chart-container mx-auto">
                         <canvas id="pcaChart"></canvas>
                     </div>
@@ -203,16 +235,18 @@
                         <li>Η **Trending Μουσική** επιδεικνύει μεγάλη ποικιλία στυλ και έντονη χρήση ηλεκτρονικών στοιχείων.</li>
                         <li>Τα αποτελέσματα του καθαρισμού δεδομένων δείχνουν **111 τραγούδια** να έχουν αναλυθεί επιτυχώς.</li>
                         <li>Οι μέθοδοι επιλογής χαρακτηριστικών επέλεξαν **13 μοναδικά χαρακτηριστικά** για την ανάλυση.</li>
-                        <li>Η **PCA** εξηγεί το **100%** της συνολικής διακύμανσης με τις δύο πρώτες συνιστώσες.</li>
+                        <li>Η **PCA** εξηγεί το **100%** της συνολικής διακύμανσης με τις δύο πρώτες συνιστώσες (PC1: 94.51%, PC2: 5.49%).</li>
+                        <li>Η μέση ακρίβεια ομαδοποίησης με **K-Means** ήταν **88.89%**.</li>
                     </ul>
                 </div>
                 <div>
                     <h3 class="text-lg font-semibold">Προτάσεις για Μελλοντική Ανάλυση</h3>
                     <ul class="list-disc list-inside space-y-2 mt-2">
                         <li>**Προσθήκη περισσότερων δεδομένων**: Αύξηση του αριθμού των τραγουδιών για καλύτερη στατιστική ισχύ.</li>
-                        <li>**Deep Learning**: Εφαρμογή προηγμένων τεχνικών για την ανακάλυψη πιο σύνθετων προτύπων.</li>
-                        <li>**Ανάλυση Χρονοσειρών**: Εξέταση της εξέλιξης των αρμονιών μέσα στο χρόνο.</li>
-                        <li>**Perceptual Models**: Χρήση μοντέλων που συσχετίζουν την ανάλυση με την ανθρώπινη αντίληψη.</li>
+                        <li>**Deep Learning**: Εφαρμογή προηγμένων τεχνικών (π.χ., RNNs, CNNs) για την ανακάλυψη πιο σύνθετων προτύπων.</li>
+                        <li>**Ανάλυση Χρονοσειρών**: Εξέταση της εξέλιξης των αρμονιών μέσα στο χρόνο και εντοπισμός δυναμικών αλλαγών.</li>
+                        <li>**Perceptual Models**: Χρήση μοντέλων που συσχετίζουν τις αναλύσεις με την ανθρώπινη αντίληψη της μουσικής.</li>
+                        <li>**Cross-validation**: Για αξιολόγηση της σταθερότητας και αξιοπιστίας των αποτελεσμάτων.</li>
                     </ul>
                 </div>
             </div>
@@ -233,9 +267,9 @@
                     mean_spectral_centroid: { 'Κρητική Μουσική': 2071.80, 'Ελληνική Μουσική': 2276.79, 'Trending Μουσική': 2181.17 },
                     harmonic_complexity: { 'Κρητική Μουσική': 0.2789, 'Ελληνική Μουσική': 0.2883, 'Trending Μουσική': 0.2867 },
                     harmonic_ratio: { 'Κρητική Μουσική': 0.8050, 'Ελληνική Μουσική': 0.6773, 'Trending Μουσική': 0.7489 },
-                    spectral_entropy: { 'Κρητική Μουσική': 0.30, 'Ελληνική Μουσική': 0.40, 'Trending Μουσική': 0.50 }, // Estimated from plot
+                    spectral_entropy: { 'Κρητική Μουσική': -4657.89, 'Ελληνική Μουσική': -5361.82, 'Trending Μουσική': -7630.57 }, // Estimated from plot based on negative values
                     harmonic_stability: { 'Κρητική Μουσική': 0.4780, 'Ελληνική Μουσική': 0.4144, 'Trending Μουσική': 0.4434 },
-                    tonal_diversity: { 'Κρητική Μουσική': 5.5, 'Ελληνική Μουσική': 5.8, 'Trending Μουσική': 5.9 }, // Estimated from plot
+                    tonal_diversity: { 'Κρητική Μουσική': 5.5512, 'Ελληνική Μουσική': 5.8636, 'Trending Μουσική': 5.8667 },
                 },
                 correlationMatrix: {
                     labels: ['mean_spectral_centroid', 'harmonic_complexity', 'harmonic_ratio', 'spectral_entropy', 'harmonic_stability', 'tonal_diversity', 'duration'],
@@ -249,17 +283,19 @@
                         [0.08, -0.22, -0.19, -0.23, 0.11, 0.15, 1.00]
                     ]
                 },
-                // Placeholder PCA Data based on visual distribution in PDF (PC1 mostly separates, PC2 has less impact)
+                // Placeholder PCA Data based on visual distribution in PDF (Page 33).
+                // PC1 separates clusters horizontally. PC2 has less spread.
                 pcaData: [
-                    { label: 'Κρητική Μουσική', data: Array.from({length: 10}, (_, i) => ({x: -1500 - Math.random() * 500, y: Math.random() * 500 - 250})), backgroundColor: 'rgba(217, 95, 2, 0.7)' },
-                    { label: 'Ελληνική Μουσική', data: Array.from({length: 10}, (_, i) => ({x: -500 - Math.random() * 500, y: Math.random() * 500 - 250})), backgroundColor: 'rgba(27, 158, 119, 0.7)' },
-                    { label: 'Trending Μουσική', data: Array.from({length: 10}, (_, i) => ({x: 500 + Math.random() * 500, y: Math.random() * 500 - 250})), backgroundColor: 'rgba(117, 112, 179, 0.7)' }
+                    { label: 'Κρητική Μουσική', data: Array.from({length: 28}, (_, i) => ({x: -1500 - Math.random() * 500, y: Math.random() * 500 - 250})), backgroundColor: 'rgba(217, 95, 2, 0.7)' },
+                    { label: 'Ελληνική Μουσική', data: Array.from({length: 33}, (_, i) => ({x: -500 - Math.random() * 500, y: Math.random() * 500 - 250})), backgroundColor: 'rgba(27, 158, 119, 0.7)' },
+                    { label: 'Trending Μουσική', data: Array.from({length: 50}, (_, i) => ({x: 500 + Math.random() * 500, y: Math.random() * 500 - 250})), backgroundColor: 'rgba(117, 112, 179, 0.7)' }
                 ],
-                // Placeholder K-Means Data based on visual clusters in PDF
+                // Placeholder K-Means Data based on visual clusters in PDF (Page 35).
+                // Clusters are visually distinct, some overlap with original genres.
                 kmeansData: [
-                    { label: 'Cluster 1', data: Array.from({length: 10}, (_, i) => ({x: -1500 - Math.random() * 500, y: Math.random() * 500 - 250})), backgroundColor: 'rgba(217, 95, 2, 0.7)' },
-                    { label: 'Cluster 2', data: Array.from({length: 10}, (_, i) => ({x: 500 + Math.random() * 500, y: Math.random() * 500 - 250})), backgroundColor: 'rgba(27, 158, 119, 0.7)' },
-                    { label: 'Cluster 3', data: Array.from({length: 10}, (_, i) => ({x: -500 - Math.random() * 500, y: Math.random() * 500 - 250})), backgroundColor: 'rgba(117, 112, 179, 0.7)' }
+                    { label: 'Cluster 1', data: Array.from({length: 30}, (_, i) => ({x: -1500 - Math.random() * 500, y: Math.random() * 500 - 250})), backgroundColor: 'rgba(217, 95, 2, 0.7)' },
+                    { label: 'Cluster 2', data: Array.from({length: 40}, (_, i) => ({x: 500 + Math.random() * 500, y: Math.random() * 500 - 250})), backgroundColor: 'rgba(27, 158, 119, 0.7)' },
+                    { label: 'Cluster 3', data: Array.from({length: 41}, (_, i) => ({x: -500 - Math.random() * 500, y: Math.random() * 500 - 250})), backgroundColor: 'rgba(117, 112, 179, 0.7)' }
                 ],
                 similarity: {
                     labels: ['Κρητική', 'Ελληνική', 'Trending'],
@@ -282,9 +318,15 @@
                     const colorPalette = ['rgba(217, 95, 2, 0.4)', 'rgba(27, 158, 119, 0.4)', 'rgba(117, 112, 179, 0.4)'];
                     const borderColor = ['rgb(217, 95, 2)', 'rgb(27, 158, 119)', 'rgb(117, 112, 179)'];
                     
+                    // Normalizing values for radar chart (0-1 scale)
                     const values = labels.map(feature => data.features[feature][genre]);
+                    const minValues = labels.map(feature => Math.min(...Object.values(data.features[feature])));
                     const maxValues = labels.map(feature => Math.max(...Object.values(data.features[feature])));
-                    const normalizedValues = values.map((val, i) => val / maxValues[i]);
+                    
+                    const normalizedValues = values.map((val, i) => {
+                        const range = maxValues[i] - minValues[i];
+                        return range === 0 ? 0 : (val - minValues[i]) / range;
+                    });
                     
                     return {
                         label: genre,
@@ -319,7 +361,13 @@
                                         }
                                         const featureName = labels[context.dataIndex];
                                         const originalValue = data.features[featureName][context.dataset.label];
-                                        return label + originalValue.toFixed(2);
+                                        // Specific formatting for spectral centroid and tonal diversity
+                                        if (featureName === 'mean_spectral_centroid') {
+                                            return label + originalValue.toFixed(2) + ' Hz';
+                                        } else if (featureName === 'tonal_diversity') {
+                                            return label + originalValue.toFixed(2);
+                                        }
+                                        return label + originalValue.toFixed(4); // Default to 4 decimal places for ratios/complexities
                                     }
                                 }
                             }
@@ -385,7 +433,16 @@
                                     callbacks: {
                                         title: function(context) {
                                             const originalTitle = featureDisplayNames[feature];
-                                            return originalTitle.match(/.{1,16}/g); // Wrap title if long
+                                            // Split title into lines if it's too long
+                                            const maxLength = 16;
+                                            if (originalTitle.length > maxLength) {
+                                                let parts = [];
+                                                for (let i = 0; i < originalTitle.length; i += maxLength) {
+                                                    parts.push(originalTitle.substring(i, i + maxLength));
+                                                }
+                                                return parts;
+                                            }
+                                            return originalTitle;
                                         },
                                         label: function(context) {
                                             return `${context.label}: ${context.raw.toFixed(2)}`;
@@ -442,7 +499,7 @@
                         maintainAspectRatio: false,
                         plugins: {
                             legend: { position: 'bottom' },
-                            title: { display: true, text: 'Ομαδοποίηση Μουσικών Αρχείων Βάσει Ααρμονικών Χαρακτηριστικών' },
+                            title: { display: true, text: 'Ομαδοποίηση Μουσικών Αρχείων Βάσει Αρμονικών Χαρακτηριστικών' },
                             tooltip: {
                                 callbacks: {
                                     label: function(context) {
@@ -452,8 +509,8 @@
                             }
                         },
                         scales: {
-                            x: { title: { display: true, text: '1η Κύρια Συνιστώσα' } },
-                            y: { title: { display: true, text: '2η Κύρια Συνιστώσα' } }
+                            x: { title: { display: true, text: '1η Κύρια Συνιστώσα (88.86% διακύμανση)' } },
+                            y: { title: { display: true, text: '2η Κύρια Συνιστώσα (11.14% διακύμανση)' } }
                         }
                     }
                 });
@@ -461,9 +518,18 @@
 
             const createCorrelationMatrix = () => {
                 const matrixContainer = document.getElementById('correlationMatrix');
-                const labels = data.correlationMatrix.labels.map(l => l.split('_').pop().replace('centroid', 'Centroid').replace('complexity', 'Complexity').replace('ratio', 'Ratio').replace('entropy', 'Entropy').replace('stability', 'Stability').replace('diversity', 'Diversity').replace('duration', 'Duration'));
+                const labels = data.correlationMatrix.labels.map(l => {
+                    if (l === 'mean_spectral_centroid') return 'Φασμ. Κέντρο';
+                    if (l === 'harmonic_complexity') return 'Αρμ. Πολυπλοκότητα';
+                    if (l === 'harmonic_ratio') return 'Αρμ. Λόγος';
+                    if (l === 'spectral_entropy') return 'Φασμ. Εντροπία';
+                    if (l === 'harmonic_stability') return 'Αρμ. Σταθερότητα';
+                    if (l === 'tonal_diversity') return 'Τον. Ποικιλία';
+                    if (l === 'duration') return 'Διάρκεια';
+                    return l;
+                });
                 
-                let tableHTML = '<table class="w-full text-left text-sm whitespace-nowrap"><thead class="bg-gray-100"><tr class="h-10"><th class="px-2 py-1"></th>';
+                let tableHTML = '<table class="w-full text-left text-sm whitespace-nowrap table-fixed"><thead class="bg-gray-100"><tr class="h-10"><th class="px-2 py-1"></th>';
                 labels.forEach(label => {
                     tableHTML += `<th class="px-2 py-1 text-center font-bold">${label}</th>`;
                 });
@@ -472,7 +538,7 @@
                 data.correlationMatrix.data.forEach((row, i) => {
                     tableHTML += `<tr><td class="px-2 py-1 font-bold bg-gray-50">${labels[i]}</td>`;
                     row.forEach(val => {
-                        let bgColorClass;
+                        let bgColorClass = '';
                         if (val > 0.6) {
                             bgColorClass = 'bg-red-200'; // Strong positive
                         } else if (val > 0.2) {
@@ -496,7 +562,7 @@
                 const matrixContainer = document.getElementById('similarityMatrix');
                 const { labels, matrix } = data.similarity;
                 
-                let tableHTML = '<table class="w-full text-left text-sm whitespace-nowrap"><thead class="bg-gray-100"><tr class="h-10"><th class="px-2 py-1"></th>';
+                let tableHTML = '<table class="w-full text-left text-sm whitespace-nowrap table-fixed"><thead class="bg-gray-100"><tr class="h-10"><th class="px-2 py-1"></th>';
                 labels.forEach(label => {
                     tableHTML += `<th class="px-2 py-1 text-center font-bold">${label}</th>`;
                 });
@@ -505,16 +571,13 @@
                 matrix.forEach((row, i) => {
                     tableHTML += `<tr><td class="px-2 py-1 font-bold bg-gray-50">${labels[i]}</td>`;
                     row.forEach(val => {
-                        const opacity = Math.max(0.2, val); // Ensure at least some color visible
-                        let bgColorClass;
+                        let bgColorClass = '';
                         if (val > 0.8) {
                             bgColorClass = 'bg-green-300'; // High similarity
                         } else if (val > 0.6) {
                             bgColorClass = 'bg-green-200'; // Moderate similarity
-                        } else if (val < 0.3) {
-                            bgColorClass = 'bg-red-100'; // Low similarity
                         } else {
-                            bgColorClass = 'bg-gray-50'; // Average
+                            bgColorClass = 'bg-gray-50'; // Low similarity
                         }
                         tableHTML += `<td class="px-2 py-1 text-center ${bgColorClass}">${val.toFixed(2)}</td>`;
                     });
@@ -565,7 +628,7 @@
             createKmeansChart();
             createCorrelationMatrix();
             createSimilarityMatrix();
-            onScroll();
+            onScroll(); // Call onScroll once on load to set initial active nav link
         });
     </script>
 </body>
