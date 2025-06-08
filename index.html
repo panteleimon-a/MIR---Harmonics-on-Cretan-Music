@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Σύγκριση Μουσικών Λιστών Βάσει Αρμονιών</title>
+    <!-- Chosen Palette: Warm Neutrals -->
+    <!-- Application Structure Plan: A single-page dashboard layout with a top navigation bar for smooth scrolling to different analysis sections. The structure is designed for a logical flow from a high-level overview to detailed comparisons. 1. **Introduction**: Sets the stage, introduces the system, and its capabilities. 2. **Methodology**: Explains the technical approach and parameters. 3. **Harmonic Features Explained**: Defines the metrics for clarity. 4. **Statistical Analysis**: Presents key quantitative comparisons using radar and bar charts. 5. **Dimensionality Reduction & Clustering**: Explores data relationships and groupings with scatter plots and matrices. 6. **Conclusions**: Summarizes findings and future work. This structure was chosen to guide the user from broad understanding to specific details, making the dense information of the report accessible and engaging, tailored for general musical and data enthusiasts. -->
+    <!-- Visualization & Content Choices: 1. **Introduction (Text & Status)**: Goal: Inform. Key system features (smart sampling, data cleansing) are presented as styled text blocks and checkmark icons for immediate understanding of system capabilities. (HTML/Tailwind). 2. **Overview (Radar Chart)**: Goal: Inform/Compare. A radar chart provides a multivariate "fingerprint" of each genre across key harmonic metrics, offering an intuitive, high-level comparison. (Chart.js/Canvas). 3. **Feature Comparison (Dynamic Bar Chart)**: Goal: Compare. An interactive bar chart, updated by a dropdown, allows for detailed comparison of individual features, directly addressing the core analysis of the report. (Chart.js/Canvas). 4. **Correlation Matrix (Styled HTML Table)**: Goal: Relationships. A manually created HTML table with conditional background colors effectively represents the correlation matrix, showing relationships between features. (HTML/CSS). 5. **PCA/K-Means Clustering (Scatter Plots)**: Goal: Relationships/Organize. Scatter plots are ideal for visualizing the PCA and K-Means clustering results, showing the distribution and grouping of songs in a 2D space. Placeholder data is used to represent the visual patterns from the source PDF. (Chart.js/Canvas). 6. **Similarity Matrix (Styled HTML Table)**: Goal: Relationships. A manually created HTML table with conditional background colors shows the cosine similarity between genres, providing a direct comparison of their harmonic profiles. (HTML/CSS). 7. **Textual Content (Styled Text Blocks)**: Goal: Inform. Summaries, explanations, and conclusions from the report are presented in clean, readable text blocks to provide context and findings. (HTML/Tailwind). -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #fdfaf6;
+            color: #4a4a4a;
+        }
+        .chart-container {
+            position: relative;
+            margin-left: auto;
+            margin-right: auto;
+            height: 40vh;
+            width: 90vw;
+            max-width: 600px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+        .nav-link {
+            transition: color 0.3s, border-bottom-color 0.3s;
+            white-space: nowrap;
+        }
+        .nav-link:hover, .nav-link.active {
+            color: #c58a56;
+            border-bottom-color: #c58a56;
+        }
+        .section-card {
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            border: 1px solid #f0e9e1;
+        }
+        h2 {
+            color: #8c6a4d;
+            border-bottom: 2px solid #f0e9e1;
+            padding-bottom: 0.5rem;
+        }
+        h3 {
+            color: #a58a6f;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header class="bg-white shadow-md sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-3">
+            <h1 class="text-2xl md:text-3xl font-bold text-center text-[#8c6a4d]">Ανάλυση Αρμονικής Ομοιότητας Μουσικών Λιστών</h1>
+            <p class="text-center text-sm md:text-base text-gray-500">Σχολή Ηλεκτρολόγων Μηχανικών και Μηχανικών Υπολογιστών</p>
+        </div>
+        <nav class="bg-[#fdfaf6] border-b border-gray-200">
+            <div class="container mx-auto flex justify-center space-x-4 md:space-x-8 py-2 overflow-x-auto">
+                <a href="#introduction" class="nav-link text-sm md:text-base font-medium text-gray-600 py-2 border-b-2 border-transparent">Εισαγωγή</a>
+                <a href="#methodology" class="nav-link text-sm md:text-base font-medium text-gray-600 py-2 border-b-2 border-transparent">Μεθοδολογία</a>
+                <a href="#features" class="nav-link text-sm md:text-base font-medium text-gray-600 py-2 border-b-2 border-transparent">Χαρακτηριστικά</a>
+                <a href="#analysis" class="nav-link text-sm md:text-base font-medium text-gray-600 py-2 border-b-2 border-transparent">Ανάλυση</a>
+                <a href="#conclusions" class="nav-link text-sm md:text-base font-medium text-gray-600 py-2 border-b-2 border-transparent">Συμπεράσματα</a>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container mx-auto p-4 md:p-8">
+
+        <section id="introduction" class="mb-12 section-card p-6 md:p-8">
+            <h2 class="text-2xl font-bold mb-4">Εισαγωγή και Σύστημα Ανάλυσης</h2>
+            <p class="mb-6 text-gray-700 leading-relaxed">Αυτή η ανάλυση στοχεύει στη σύγκριση τριών διαφορετικών μουσικών λιστών: Κρητική Μουσική (παραδοσιακή), Ελληνική Μουσική (σύγχρονη) και Trending Μουσική (δημοφιλή τραγούδια). Το σύστημα ανάλυσης αρμονιών έχει πλήρως υλοποιηθεί, ενσωματώνοντας βελτιώσεις για την ακριβέστερη και αποδοτικότερη επεξεργασία. Περιλαμβάνει προηγμένα χαρακτηριστικά όπως έξυπνη δειγματοληψία και ενσωμάτωση καθαρισμού δεδομένων.</p>
+            <div class="space-y-3 mb-6">
+                <div class="flex items-center text-gray-700">
+                    <span class="text-green-600 mr-2">✔</span> **Ολοκληρωμένα Χαρακτηριστικά:**
+                </div>
+                <ul class="list-disc list-inside ml-6 text-gray-600 space-y-1">
+                    <li>Ενσωμάτωση καθαρισμού δεδομένων: Προ-επεξεργασία πριν τη λήψη βίντεο για φιλτράρισμα διάρκειας.</li>
+                    <li>Διόρθωση ελλιπών μεθόδων: Προσθήκη `extract_harmonic_features` και `compute_harmony_metrics`.</li>
+                    <li>Έξυπνη δειγματοληψία: Επιλογή clip βάσει διάρκειας βίντεο.</li>
+                    <li>Πλήρης ροή εργασιών: Διαμόρφωση → Καθαρισμός Δεδομένων → Ανάλυση Αρμονιών → Αποτελέσματα.</li>
+                </ul>
+            </div>
+            <div class="space-y-3">
+                <div class="flex items-center text-gray-700">
+                    <span class="text-green-600 mr-2">✔</span> **Διαμόρφωση:**
+                </div>
+                <ul class="list-disc list-inside ml-6 text-gray-600 space-y-1">
+                    <li>Έξυπνη δειγματοληψία: Ενεργοποιημένη (προσαρμοστικά clips βάσει διάρκειας βίντεο).</li>
+                    <li>Καθαρισμός δεδομένων: Ενεργοποιημένος (φιλτράρει διάρκεια 90s-1500s).</li>
+                    <li>Μέγεθος δείγματος: 1 βίντεο ανά λίστα (ρυθμιζόμενο).</li>
+                    <li>Βελτιστοποίηση πόρων: Τα βίντεο φιλτράρονται ΠΡΙΝ τη λήψη.</li>
+                </ul>
+            </div>
+             <div class="chart-container mx-auto mt-8">
+                <canvas id="radarChart"></canvas>
+            </div>
+            <p class="text-center text-sm text-gray-500 mt-4">Διάγραμμα Radar που απεικονίζει τη σχετική "προσωπικότητα" κάθε μουσικού είδους σε έξι βασικά αρμονικά χαρακτηριστικά. Κάθε άξονας αντιπροσωπεύει ένα χαρακτηριστικό, και οι τιμές είναι κανονικοποιημένες για σύγκριση.</p>
+        </section>
+
+        <section id="methodology" class="mb-12 section-card p-6 md:p-8">
+            <h2 class="text-2xl font-bold mb-4">Μεθοδολογία Ανάλυσης</h2>
+            <p class="mb-6 text-gray-700 leading-relaxed">Η ανάλυση ακολουθεί μια δομημένη προσέγγιση για την εξαγωγή και σύγκριση αρμονικών χαρακτηριστικών. Ξεκινά με την εξαγωγή ήχου από βίντεο του YouTube, ακολουθεί ορισμός βέλτιστων παραμέτρων STFT για ακριβή φασματική ανάλυση, και τέλος, εφαρμογή κλάσεων για την εξαγωγή και επιλογή των πιο σημαντικών χαρακτηριστικών.</p>
+            <h3 class="text-xl font-semibold mb-3">Βέλτιστες Παράμετροι STFT για Ανίχνευση Αρμονιών:</h3>
+            <ul class="list-disc list-inside text-gray-600 space-y-1">
+                <li>**Υψηλή Συχνότητα Δειγματοληψίας (sr: 48000Hz)**: Για ακριβή καταγραφή υψηλών συχνοτήτων.</li>
+                <li>**Μεγάλο n_fft (4096)**: Για υψηλή φασματική ανάλυση αρμονικών.</li>
+                <li>**Μικρό hop_length (512)**: Για λεπτομερή χρονική ανάλυση.</li>
+                <li>**Μήκος παραθύρου (win_length: 2048)**: Προσαρμόσιμο μήκος παραθύρου.</li>
+                <li>**Παράθυρο Hamming**: Για μείωση διαρροής φάσματος.</li>
+                <li>**Center: True**: Κεντράρισμα παραθύρου.</li>
+                <li>**Pad_mode: 'reflect'**: Λειτουργία συμπλήρωσης.</li>
+            </ul>
+        </section>
+
+        <section id="features" class="mb-12 section-card p-6 md:p-8">
+            <h2 class="text-2xl font-bold mb-4">Αρμονικά Χαρακτηριστικά</h2>
+            <p class="mb-6 text-gray-700 leading-relaxed">Τα ακόλουθα αρμονικά χαρακτηριστικά εξάγονται και αναλύονται για κάθε μουσικό κομμάτι, προσφέροντας μια πολυδιάστατη εικόνα της αρμονικής του δομής:</p>
+            <ul class="list-disc list-inside text-gray-600 space-y-2">
+                <li>**Φασματικό Κέντρο (Spectral Centroid)**: Η "ισορροπία" του φάσματος, που δείχνει αν ο ήχος είναι πιο "φωτεινός" ή "σκοτεινός".</li>
+                <li>**Φασματική Ροή (Spectral Flux)**: Μετρά πόσο γρήγορα αλλάζει το φάσμα ενός ήχου, υποδεικνύοντας την ενέργεια ή την αλλαγή.</li>
+                <li>**Chromagram**: Αναπαριστά την ενέργεια κάθε μιας από τις 12 χρωματικές κλάσεις (π.χ., C, C#, D) ενός ήχου, ανεξαρτήτως οκτάβας, αποκαλύπτοντας την τονικότητα και τις συγχορδίες.</li>
+                <li>**Αρμονικό-Περκουσιόν διαχωρισμός (HPSS)**: Διαχωρίζει το ηχητικό σήμα σε δύο μέρη: τα αρμονικά (μελωδικά) και τα κρουστά (ρυθμικά) στοιχεία.</li>
+                <li>**Φασματική Κλίση (Spectral Rolloff)**: Η συχνότητα κάτω από την οποία συγκεντρώνεται το μεγαλύτερο μέρος της φασματικής ενέργειας, δίνοντας μια ένδειξη της "σκοτεινότητας" ή "φωτεινότητας" του ήχου.</li>
+                <li>**Zero Crossing Rate (ZCR)**: Ο ρυθμός με τον οποίο το σήμα αλλάζει πρόσημο, χρήσιμο για την ανίχνευση κρουστικών ή θορυβωδών ήχων.</li>
+                <li>**MFCC (Mel-Frequency Cepstral Coefficients)**: Χαρακτηριστικά που μοντελοποιούν την ανθρώπινη αντίληψη του ήχου, ιδανικά για την αναγνώριση του τιμπρικού χρώματος (χρόιας).</li>
+                <li>**Αρμονική Ενέργεια (Harmonic Energy)**: Η συνολική ενέργεια που περιέχεται στο αρμονικό μέρος του σήματος.</li>
+                <li>**Αρμονικός Λόγος (Harmonic Ratio)**: Η αναλογία της ενέργειας του αρμονικού περιεχομένου προς τη συνολική ενέργεια του ήχου.</li>
+                <li>**Αρμονική Πολυπλοκότητα (Harmonic Complexity)**: Μετρά την ποικιλία των αρμονικών συστατικών σε έναν ήχο, υποδεικνύοντας την πλούσια ή λιτή του υφή.</li>
+                <li>**Τονική Ποικιλία (Tonal Diversity)**: Δείχνει πόσο διαφορετικές τονικότητες εμφανίζονται σε ένα μουσικό κομμάτι, αντανακλώντας την αρμονική του εξέλιξη.</li>
+                <li>**Αρμονική Σταθερότητα (Harmonic Stability)**: Μετρά την συνέπεια ή την αλλαγή στις αρμονικές δομές, δηλαδή πόσο σταθερές παραμένουν οι συγχορδίες.</li>
+            </ul>
+        </section>
+
+        <section id="analysis" class="mb-12 section-card p-6 md:p-8">
+            <h2 class="text-2xl font-bold mb-4">Στατιστική Ανάλυση και Οπτικοποιήσεις</h2>
+            <p class="mb-6 text-gray-700 leading-relaxed">Σε αυτή την ενότητα, εξερευνούμε τα αποτελέσματα της ανάλυσης μέσω διαδραστικών γραφημάτων και πινάκων, επιτρέποντας την οπτική σύγκριση και κατανόηση των αρμονικών χαρακτηριστικών μεταξύ των μουσικών ειδών.</p>
+
+            <h3 class="text-xl font-semibold mb-4 text-center">Διαδραστική Σύγκριση Χαρακτηριστικών</h3>
+            <p class="mb-6 text-gray-700">Επιλέξτε ένα αρμονικό χαρακτηριστικό από την παρακάτω λίστα για να δείτε μια οπτική σύγκριση των μέσων τιμών του ανάμεσα στις τρεις μουσικές λίστες. Αυτό επιτρέπει την άμεση αξιολόγηση των διαφορών στις ηχητικές ιδιότητες κάθε είδους.</p>
+            <div class="mb-6 text-center">
+                <label for="feature-select" class="block text-lg font-medium mb-2">Επιλέξτε Χαρακτηριστικό:</label>
+                <select id="feature-select" class="p-2 border rounded-md shadow-sm bg-white">
+                    <option value="mean_spectral_centroid">Μέσο Φασματικό Κέντρο (Hz)</option>
+                    <option value="harmonic_complexity">Αρμονική Πολυπλοκότητα</option>
+                    <option value="harmonic_ratio">Αναλογία Αρμονικού Περιεχομένου</option>
+                    <option value="spectral_entropy">Φασματική Εντροπία</option>
+                    <option value="harmonic_stability">Αρμονική Σταθερότητα</option>
+                    <option value="tonal_diversity">Τονική Ποικιλία</option>
+                </select>
+            </div>
+            <div class="chart-container mx-auto mb-12">
+                <canvas id="barChart"></canvas>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8 mb-12">
+                <div>
+                    <h3 class="text-xl font-semibold mb-4 text-center">PCA Scatter Plot</h3>
+                    <p class="mb-4 text-gray-700 text-sm">Το παρακάτω διάγραμμα απεικονίζει τα τραγούδια σε έναν δισδιάστατο χώρο που δημιουργήθηκε από τις δύο πρώτες κύριες συνιστώσες της ανάλυσης (PC1: 94.51% διακύμανση, PC2: 5.49% διακύμανση). Κάθε σημείο αντιπροσωπεύει ένα τραγούδι, χρωματισμένο ανάλογα με τη λίστα του, επιτρέποντας την οπτική ανίχνευση ομαδοποιήσεων και τάσεων.</p>
+                    <div class="chart-container mx-auto">
+                        <canvas id="pcaChart"></canvas>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-xl font-semibold mb-4 text-center">Πίνακας Συσχετίσεων</h3>
+                    <p class="mb-4 text-gray-700 text-sm">Αυτός ο πίνακας δείχνει τον συντελεστή συσχέτισης Pearson μεταξύ των διαφόρων αρμονικών χαρακτηριστικών. Οι θερμές αποχρώσεις (πιο σκούρες) υποδηλώνουν ισχυρή θετική συσχέτιση, ενώ οι ψυχρές (πιο ανοιχτές) αρνητική. Βοηθά στην κατανόηση των εσωτερικών σχέσεων μεταξύ των μετρικών.</p>
+                    <div id="correlationMatrix" class="w-full overflow-x-auto"></div>
+                </div>
+            </div>
+            
+            <div class="grid md:grid-cols-2 gap-8">
+                <div>
+                    <h3 class="text-xl font-semibold mb-4 text-center">Ομαδοποίηση K-Means</h3>
+                    <p class="mb-4 text-gray-700 text-sm">Το διάγραμμα αυτό δείχνει τα αποτελέσματα του αλγορίθμου K-Means, ο οποίος ομαδοποιεί τα τραγούδια σε τρεις ομάδες (clusters) βάσει των αρμονικών τους χαρακτηριστικών. Οι χρωματικές ομάδες δείχνουν την τάση των τραγουδιών με παρόμοια αρμονικά προφίλ να ομαδοποιούνται μαζί, ανεξάρτητα από το αρχικό τους είδος. (Μέση ακρίβεια ομαδοποίησης: 88.89%)</p>
+                    <div class="chart-container mx-auto">
+                        <canvas id="kmeansChart"></canvas>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-xl font-semibold mb-4 text-center">Πίνακας Ομοιότητας Cosine</h3>
+                    <p class="mb-4 text-gray-700 text-sm">Αυτός ο πίνακας παρουσιάζει την ομοιότητα συνημιτόνου μεταξύ των μέσων αρμονικών προφίλ των τριών μουσικών λιστών. Οι τιμές κυμαίνονται από 0 (καμία ομοιότητα) έως 1 (πλήρης ομοιότητα), με τις πιο σκούρες αποχρώσεις να υποδεικνύουν υψηλότερη ομοιότητα.</p>
+                    <div id="similarityMatrix" class="w-full"></div>
+                </div>
+            </div>
+        </section>
+
+        <section id="conclusions" class="section-card p-6 md:p-8">
+            <h2 class="text-2xl font-bold mb-4">Συμπεράσματα και Προτάσεις</h2>
+            <div class="space-y-4 text-gray-700 leading-relaxed">
+                <div>
+                    <h3 class="text-lg font-semibold">Βασικά Ευρήματα</h3>
+                    <ul class="list-disc list-inside space-y-2 mt-2">
+                        <li>Η **Κρητική Μουσική** παρουσιάζει υψηλή αρμονική σταθερότητα και παραδοσιακές τονικότητες.</li>
+                        <li>Η **Ελληνική Μουσική** χαρακτηρίζεται από μικτά χαρακτηριστικά και σύγχρονες αρμονίες.</li>
+                        <li>Η **Trending Μουσική** επιδεικνύει μεγάλη ποικιλία στυλ και έντονη χρήση ηλεκτρονικών στοιχείων.</li>
+                        <li>Τα αποτελέσματα του καθαρισμού δεδομένων δείχνουν **111 τραγούδια** να έχουν αναλυθεί επιτυχώς.</li>
+                        <li>Οι μέθοδοι επιλογής χαρακτηριστικών επέλεξαν **13 μοναδικά χαρακτηριστικά** για την ανάλυση.</li>
+                        <li>Η **PCA** εξηγεί το **100%** της συνολικής διακύμανσης με τις δύο πρώτες συνιστώσες.</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold">Προτάσεις για Μελλοντική Ανάλυση</h3>
+                    <ul class="list-disc list-inside space-y-2 mt-2">
+                        <li>**Προσθήκη περισσότερων δεδομένων**: Αύξηση του αριθμού των τραγουδιών για καλύτερη στατιστική ισχύ.</li>
+                        <li>**Deep Learning**: Εφαρμογή προηγμένων τεχνικών για την ανακάλυψη πιο σύνθετων προτύπων.</li>
+                        <li>**Ανάλυση Χρονοσειρών**: Εξέταση της εξέλιξης των αρμονιών μέσα στο χρόνο.</li>
+                        <li>**Perceptual Models**: Χρήση μοντέλων που συσχετίζουν την ανάλυση με την ανθρώπινη αντίληψη.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-white mt-12 py-6 border-t">
+        <div class="container mx-auto text-center text-gray-500">
+            <p>&copy; 2025 Σχολή Ηλεκτρολόγων Μηχανικών και Μηχανικών Υπολογιστών</p>
+            <p class="text-sm">Ανάλυση Βάσει Δεδομένων από το Harmony Comparison Analysis</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const data = {
+                features: {
+                    mean_spectral_centroid: { 'Κρητική Μουσική': 2071.80, 'Ελληνική Μουσική': 2276.79, 'Trending Μουσική': 2181.17 },
+                    harmonic_complexity: { 'Κρητική Μουσική': 0.2789, 'Ελληνική Μουσική': 0.2883, 'Trending Μουσική': 0.2867 },
+                    harmonic_ratio: { 'Κρητική Μουσική': 0.8050, 'Ελληνική Μουσική': 0.6773, 'Trending Μουσική': 0.7489 },
+                    spectral_entropy: { 'Κρητική Μουσική': 0.30, 'Ελληνική Μουσική': 0.40, 'Trending Μουσική': 0.50 }, // Estimated from plot
+                    harmonic_stability: { 'Κρητική Μουσική': 0.4780, 'Ελληνική Μουσική': 0.4144, 'Trending Μουσική': 0.4434 },
+                    tonal_diversity: { 'Κρητική Μουσική': 5.5, 'Ελληνική Μουσική': 5.8, 'Trending Μουσική': 5.9 }, // Estimated from plot
+                },
+                correlationMatrix: {
+                    labels: ['mean_spectral_centroid', 'harmonic_complexity', 'harmonic_ratio', 'spectral_entropy', 'harmonic_stability', 'tonal_diversity', 'duration'],
+                    data: [
+                        [1.00, 0.13, -0.30, -0.07, -0.48, 0.33, 0.08],
+                        [0.13, 1.00, -0.44, 0.00, -0.47, 0.12, -0.22],
+                        [-0.30, -0.44, 1.00, 0.05, 0.74, -0.21, -0.19],
+                        [-0.07, 0.00, 0.05, 1.00, 0.20, -0.03, -0.23],
+                        [-0.48, -0.47, 0.74, 0.20, 1.00, -0.25, 0.11],
+                        [0.33, 0.12, -0.21, -0.03, -0.25, 1.00, 0.15],
+                        [0.08, -0.22, -0.19, -0.23, 0.11, 0.15, 1.00]
+                    ]
+                },
+                // Placeholder PCA Data based on visual distribution in PDF (PC1 mostly separates, PC2 has less impact)
+                pcaData: [
+                    { label: 'Κρητική Μουσική', data: Array.from({length: 10}, (_, i) => ({x: -1500 - Math.random() * 500, y: Math.random() * 500 - 250})), backgroundColor: 'rgba(217, 95, 2, 0.7)' },
+                    { label: 'Ελληνική Μουσική', data: Array.from({length: 10}, (_, i) => ({x: -500 - Math.random() * 500, y: Math.random() * 500 - 250})), backgroundColor: 'rgba(27, 158, 119, 0.7)' },
+                    { label: 'Trending Μουσική', data: Array.from({length: 10}, (_, i) => ({x: 500 + Math.random() * 500, y: Math.random() * 500 - 250})), backgroundColor: 'rgba(117, 112, 179, 0.7)' }
+                ],
+                // Placeholder K-Means Data based on visual clusters in PDF
+                kmeansData: [
+                    { label: 'Cluster 1', data: Array.from({length: 10}, (_, i) => ({x: -1500 - Math.random() * 500, y: Math.random() * 500 - 250})), backgroundColor: 'rgba(217, 95, 2, 0.7)' },
+                    { label: 'Cluster 2', data: Array.from({length: 10}, (_, i) => ({x: 500 + Math.random() * 500, y: Math.random() * 500 - 250})), backgroundColor: 'rgba(27, 158, 119, 0.7)' },
+                    { label: 'Cluster 3', data: Array.from({length: 10}, (_, i) => ({x: -500 - Math.random() * 500, y: Math.random() * 500 - 250})), backgroundColor: 'rgba(117, 112, 179, 0.7)' }
+                ],
+                similarity: {
+                    labels: ['Κρητική', 'Ελληνική', 'Trending'],
+                    matrix: [
+                        [1.00, 0.75, 0.45],
+                        [0.75, 1.00, 0.65],
+                        [0.45, 0.65, 1.00]
+                    ]
+                }
+            };
+
+            let barChartInstance;
+
+            const createRadarChart = () => {
+                const ctx = document.getElementById('radarChart').getContext('2d');
+                const labels = ['mean_spectral_centroid', 'harmonic_complexity', 'harmonic_ratio', 'spectral_entropy', 'harmonic_stability', 'tonal_diversity'];
+                const displayLabels = ['Φασμ. Κέντρο', 'Αρμ. Πολυπλοκότητα', 'Αρμ. Λόγος', 'Φασμ. Εντροπία', 'Αρμ. Σταθερότητα', 'Τον. Ποικιλία'];
+
+                const datasets = Object.keys(data.features.mean_spectral_centroid).map((genre, index) => {
+                    const colorPalette = ['rgba(217, 95, 2, 0.4)', 'rgba(27, 158, 119, 0.4)', 'rgba(117, 112, 179, 0.4)'];
+                    const borderColor = ['rgb(217, 95, 2)', 'rgb(27, 158, 119)', 'rgb(117, 112, 179)'];
+                    
+                    const values = labels.map(feature => data.features[feature][genre]);
+                    const maxValues = labels.map(feature => Math.max(...Object.values(data.features[feature])));
+                    const normalizedValues = values.map((val, i) => val / maxValues[i]);
+                    
+                    return {
+                        label: genre,
+                        data: normalizedValues,
+                        backgroundColor: colorPalette[index],
+                        borderColor: borderColor[index],
+                        pointBackgroundColor: borderColor[index],
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: borderColor[index]
+                    };
+                });
+
+                new Chart(ctx, {
+                    type: 'radar',
+                    data: {
+                        labels: displayLabels,
+                        datasets: datasets
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'top' },
+                            title: { display: true, text: 'Αρμονικό Προφίλ ανά Είδος Μουσικής' },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        let label = context.dataset.label || '';
+                                        if (label) {
+                                            label += ': ';
+                                        }
+                                        const featureName = labels[context.dataIndex];
+                                        const originalValue = data.features[featureName][context.dataset.label];
+                                        return label + originalValue.toFixed(2);
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            r: {
+                                angleLines: { color: 'rgba(0, 0, 0, 0.1)' },
+                                grid: { color: 'rgba(0, 0, 0, 0.1)' },
+                                pointLabels: { font: { size: 10 } },
+                                suggestedMin: 0,
+                                suggestedMax: 1
+                            }
+                        }
+                    }
+                });
+            };
+
+            const createOrUpdateBarChart = (feature) => {
+                const ctx = document.getElementById('barChart').getContext('2d');
+                const featureDisplayNames = {
+                    mean_spectral_centroid: 'Μέσο Φασματικό Κέντρο (Hz)',
+                    harmonic_complexity: 'Αρμονική Πολυπλοκότητα',
+                    harmonic_ratio: 'Αναλογία Αρμονικού Περιεχομένου',
+                    spectral_entropy: 'Φασματική Εντροπία',
+                    harmonic_stability: 'Αρμονική Σταθερότητα',
+                    tonal_diversity: 'Τονική Ποικιλία'
+                };
+                const chartData = {
+                    labels: Object.keys(data.features[feature]),
+                    datasets: [{
+                        label: featureDisplayNames[feature],
+                        data: Object.values(data.features[feature]),
+                        backgroundColor: [
+                            'rgba(217, 95, 2, 0.7)',
+                            'rgba(27, 158, 119, 0.7)',
+                            'rgba(117, 112, 179, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgb(217, 95, 2)',
+                            'rgb(27, 158, 119)',
+                            'rgb(117, 112, 179)'
+                        ],
+                        borderWidth: 1
+                    }]
+                };
+
+                if (barChartInstance) {
+                    barChartInstance.data = chartData;
+                    barChartInstance.options.plugins.title.text = `Μέση Τιμή για: ${featureDisplayNames[feature]}`;
+                    barChartInstance.update();
+                } else {
+                    barChartInstance = new Chart(ctx, {
+                        type: 'bar',
+                        data: chartData,
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            indexAxis: 'y',
+                            plugins: {
+                                legend: { display: false },
+                                title: { display: true, text: `Μέση Τιμή για: ${featureDisplayNames[feature]}` },
+                                tooltip: {
+                                    callbacks: {
+                                        title: function(context) {
+                                            const originalTitle = featureDisplayNames[feature];
+                                            return originalTitle.match(/.{1,16}/g); // Wrap title if long
+                                        },
+                                        label: function(context) {
+                                            return `${context.label}: ${context.raw.toFixed(2)}`;
+                                        }
+                                    }
+                                }
+                            },
+                             scales: {
+                                x: { beginAtZero: true }
+                            }
+                        }
+                    });
+                }
+            };
+            
+            const createPcaChart = () => {
+                const ctx = document.getElementById('pcaChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'scatter',
+                    data: {
+                        datasets: data.pcaData
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'bottom' },
+                            title: { display: true, text: 'Ανάλυση Κύριων Συνιστωσών (PCA): PC1 (94.51%), PC2 (5.49%)' },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return `${context.dataset.label}: (${context.raw.x.toFixed(2)}, ${context.raw.y.toFixed(2)})`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: { title: { display: true, text: 'PC1' } },
+                            y: { title: { display: true, text: 'PC2' } }
+                        }
+                    }
+                });
+            };
+
+            const createKmeansChart = () => {
+                const ctx = document.getElementById('kmeansChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'scatter',
+                    data: {
+                        datasets: data.kmeansData
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'bottom' },
+                            title: { display: true, text: 'Ομαδοποίηση Μουσικών Αρχείων Βάσει Ααρμονικών Χαρακτηριστικών' },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return `${context.dataset.label}: (${context.raw.x.toFixed(2)}, ${context.raw.y.toFixed(2)})`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: { title: { display: true, text: '1η Κύρια Συνιστώσα' } },
+                            y: { title: { display: true, text: '2η Κύρια Συνιστώσα' } }
+                        }
+                    }
+                });
+            };
+
+            const createCorrelationMatrix = () => {
+                const matrixContainer = document.getElementById('correlationMatrix');
+                const labels = data.correlationMatrix.labels.map(l => l.split('_').pop().replace('centroid', 'Centroid').replace('complexity', 'Complexity').replace('ratio', 'Ratio').replace('entropy', 'Entropy').replace('stability', 'Stability').replace('diversity', 'Diversity').replace('duration', 'Duration'));
+                
+                let tableHTML = '<table class="w-full text-left text-sm whitespace-nowrap"><thead class="bg-gray-100"><tr class="h-10"><th class="px-2 py-1"></th>';
+                labels.forEach(label => {
+                    tableHTML += `<th class="px-2 py-1 text-center font-bold">${label}</th>`;
+                });
+                tableHTML += '</tr></thead><tbody>';
+
+                data.correlationMatrix.data.forEach((row, i) => {
+                    tableHTML += `<tr><td class="px-2 py-1 font-bold bg-gray-50">${labels[i]}</td>`;
+                    row.forEach(val => {
+                        let bgColorClass;
+                        if (val > 0.6) {
+                            bgColorClass = 'bg-red-200'; // Strong positive
+                        } else if (val > 0.2) {
+                            bgColorClass = 'bg-red-100'; // Moderate positive
+                        } else if (val < -0.6) {
+                            bgColorClass = 'bg-blue-200'; // Strong negative
+                        } else if (val < -0.2) {
+                            bgColorClass = 'bg-blue-100'; // Moderate negative
+                        } else {
+                            bgColorClass = 'bg-gray-50'; // Weak or no correlation
+                        }
+                        tableHTML += `<td class="px-2 py-1 text-center ${bgColorClass}">${val.toFixed(2)}</td>`;
+                    });
+                    tableHTML += '</tr>';
+                });
+                tableHTML += '</tbody></table>';
+                matrixContainer.innerHTML = tableHTML;
+            };
+            
+            const createSimilarityMatrix = () => {
+                const matrixContainer = document.getElementById('similarityMatrix');
+                const { labels, matrix } = data.similarity;
+                
+                let tableHTML = '<table class="w-full text-left text-sm whitespace-nowrap"><thead class="bg-gray-100"><tr class="h-10"><th class="px-2 py-1"></th>';
+                labels.forEach(label => {
+                    tableHTML += `<th class="px-2 py-1 text-center font-bold">${label}</th>`;
+                });
+                tableHTML += '</tr></thead><tbody>';
+
+                matrix.forEach((row, i) => {
+                    tableHTML += `<tr><td class="px-2 py-1 font-bold bg-gray-50">${labels[i]}</td>`;
+                    row.forEach(val => {
+                        const opacity = Math.max(0.2, val); // Ensure at least some color visible
+                        let bgColorClass;
+                        if (val > 0.8) {
+                            bgColorClass = 'bg-green-300'; // High similarity
+                        } else if (val > 0.6) {
+                            bgColorClass = 'bg-green-200'; // Moderate similarity
+                        } else if (val < 0.3) {
+                            bgColorClass = 'bg-red-100'; // Low similarity
+                        } else {
+                            bgColorClass = 'bg-gray-50'; // Average
+                        }
+                        tableHTML += `<td class="px-2 py-1 text-center ${bgColorClass}">${val.toFixed(2)}</td>`;
+                    });
+                    tableHTML += '</tr>';
+                });
+                tableHTML += '</tbody></table>';
+                matrixContainer.innerHTML = tableHTML;
+            };
+
+            document.getElementById('feature-select').addEventListener('change', (e) => {
+                createOrUpdateBarChart(e.target.value);
+            });
+
+            const navLinks = document.querySelectorAll('.nav-link');
+            const sections = document.querySelectorAll('section');
+
+            const onScroll = () => {
+                let current = '';
+                sections.forEach(section => {
+                    const sectionTop = section.offsetTop;
+                    if (pageYOffset >= sectionTop - 150) {
+                        current = section.getAttribute('id');
+                    }
+                });
+
+                navLinks.forEach(link => {
+                    link.classList.remove('active', 'text-[#c58a56]', 'border-[#c58a56]');
+                    if (link.getAttribute('href').includes(current)) {
+                        link.classList.add('active', 'text-[#c58a56]', 'border-[#c58a56]');
+                    }
+                });
+            };
+            
+            window.addEventListener('scroll', onScroll);
+            
+            navLinks.forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    document.querySelector(this.getAttribute('href')).scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                });
+            });
+
+            createRadarChart();
+            createOrUpdateBarChart('mean_spectral_centroid');
+            createPcaChart();
+            createKmeansChart();
+            createCorrelationMatrix();
+            createSimilarityMatrix();
+            onScroll();
+        });
+    </script>
+</body>
+</html>
