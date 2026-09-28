@@ -10,6 +10,10 @@ Traditional music is fading. Playlists fill with whatever is easiest to stream, 
 
 In Crete that root has a voice. The λύρα is a small bowed instrument and a large inheritance. Its power is in the bow as much as in the string: a melody that leans, answers itself, and keeps moving. Under it, the λαούτο does not sit on one chord. Players pass through turns — εναλλαγές — that change the colour of the phrase while the dance stays intact. Heritage here is audible. It is richness of sound: partials, drones, open strings, and a harmony that shifts because the music has somewhere to go.
 
+![A man plays the Cretan lyra at a home table, bow drawn across the strings, while two men sit with him.](images/cretan-lyra.jpg)
+
+*A λύρα at the table. The bow, the instrument, and the room the music was made for.*
+
 This analysis is a stance against promoting music with no εναλλαγές and no richness of chords, and against snobbing the traditions that still have both. Cretan recordings, other Greek recordings, and current trending tracks are placed in the same harmonic feature space so the difference can be measured. What is compared is pitch-class energy, spectral shape, and the balance of sustained tone against percussion. The question is whether the lists separate: whether the older practice still occupies a region that flatter, more uniform repertoire does not.
 
 Three playlists supply the recordings:
