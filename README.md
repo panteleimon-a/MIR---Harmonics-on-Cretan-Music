@@ -14,7 +14,7 @@ In Crete that root has a voice. The λύρα is a small bowed instrument and a l
 
 *A λύρα at the table. The bow, the instrument, and the room the music was made for.*
 
-This analysis is a stance against promoting music with no εναλλαγές and no richness of chords, and against snobbing the traditions that still have both. Cretan recordings, other Greek recordings, and current trending tracks are placed in the same harmonic feature space so the difference can be measured. What is compared is pitch-class energy, spectral shape, and the balance of sustained tone against percussion. The question is whether the lists separate: whether the older practice still occupies a region that flatter, more uniform repertoire does not.
+This study challenges the promotion of music lacking harmonic progression and chordal richness, as well as the dismissal of traditions that preserve both. By projecting Cretan pieces, other Greek recordings, and current trending tracks into a shared harmonic feature space, we quantify these differences. Specifically, we compare pitch-class energy, spectral envelope, and the ratio of sustained tone to percussive transients. The core question is whether these corpora separate into distinct clusters—that is, whether traditional practices occupy an acoustic domain that flatter, more homogeneous commercial repertoire does not.
 
 Three playlists supply the recordings:
 
